@@ -1,0 +1,126 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
+
+<!-- Head Fragment -->
+<head th:fragment="head(title)">
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title th:text="${title} + ' - Blood Bank'"></title>
+    <!-- Bootstrap 5 CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <!-- Bootstrap Icons -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css" rel="stylesheet">
+    <!-- Custom Style CSS -->
+    <link th:href="@{/css/style.css}" rel="stylesheet">
+    <!-- Chart.js -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+</head>
+
+<body>
+
+<!-- Sidebar Fragment -->
+<div th:fragment="sidebar(activeLink)" id="sidebar" class="sidebar">
+    <div class="sidebar-header">
+        <i class="bi bi-heart-pulse-fill sidebar-logo"></i>
+        <span class="sidebar-brand">Blood Bank</span>
+    </div>
+    
+    <ul class="sidebar-menu">
+        <!-- ADMIN Links -->
+        <li sec:authorize="hasRole('ADMIN')">
+            <a th:href="@{/admin/dashboard}" class="sidebar-link" th:classappend="${activeLink == 'dashboard' ? 'active' : ''}">
+                <i class="bi bi-speedometer2"></i> Dashboard
+            </a>
+        </li>
+        <li sec:authorize="hasRole('ADMIN')">
+            <a th:href="@{/admin/logs}" class="sidebar-link" th:classappend="${activeLink == 'logs' ? 'active' : ''}">
+                <i class="bi bi-journal-text"></i> Audit Logs
+            </a>
+        </li>
+        <li sec:authorize="hasRole('ADMIN')">
+            <a th:href="@{/admin/settings}" class="sidebar-link" th:classappend="${activeLink == 'settings' ? 'active' : ''}">
+                <i class="bi bi-gear"></i> System Settings
+            </a>
+        </li>
+
+        <!-- STAFF Links (also visible to Admin) -->
+        <li sec:authorize="hasRole('STAFF')">
+            <a th:href="@{/staff/dashboard}" class="sidebar-link" th:classappend="${activeLink == 'dashboard' ? 'active' : ''}">
+                <i class="bi bi-speedometer2"></i> Staff Dashboard
+            </a>
+        </li>
+        <li sec:authorize="hasAnyRole('ADMIN', 'STAFF')">
+            <a th:href="@{/donors}" class="sidebar-link" th:classappend="${activeLink == 'donors' ? 'active' : ''}">
+                <i class="bi bi-people"></i> Donors List
+            </a>
+        </li>
+        <li sec:authorize="hasAnyRole('ADMIN', 'STAFF')">
+            <a th:href="@{/inventory}" class="sidebar-link" th:classappend="${activeLink == 'inventory' ? 'active' : ''}">
+                <i class="bi bi-droplet-half"></i> Blood Stock
+            </a>
+        </li>
+        <li sec:authorize="hasAnyRole('ADMIN', 'STAFF')">
+            <a th:href="@{/donations}" class="sidebar-link" th:classappend="${activeLink == 'donations' ? 'active' : ''}">
+                <i class="bi bi-heart"></i> Donations
+            </a>
+        </li>
+        <li sec:authorize="hasAnyRole('ADMIN', 'STAFF')">
+            <a th:href="@{/requests}" class="sidebar-link" th:classappend="${activeLink == 'requests' ? 'active' : ''}">
+                <i class="bi bi-send-exclamation"></i> Blood Requests
+            </a>
+        </li>
+        <li sec:authorize="hasAnyRole('ADMIN', 'STAFF')">
+            <a th:href="@{/reports}" class="sidebar-link" th:classappend="${activeLink == 'reports' ? 'active' : ''}">
+                <i class="bi bi-file-earmark-bar-graph"></i> Report Panel
+            </a>
+        </li>
+
+        <!-- DONOR Links -->
+        <li sec:authorize="hasRole('DONOR')">
+            <a th:href="@{/donor/dashboard}" class="sidebar-link" th:classappend="${activeLink == 'dashboard' ? 'active' : ''}">
+                <i class="bi bi-speedometer2"></i> My Dashboard
+            </a>
+        </li>
+        <li sec:authorize="hasRole('DONOR')">
+            <a th:href="@{/donor/book}" class="sidebar-link" th:classappend="${activeLink == 'book' ? 'active' : ''}">
+                <i class="bi bi-calendar-plus"></i> Book Donation
+            </a>
+        </li>
+    </ul>
+
+    <div class="sidebar-footer">
+        <small class="text-white-50">© 2026 Blood Bank Inc.</small>
+    </div>
+</div>
+
+<!-- Navbar Fragment -->
+<header th:fragment="navbar" class="main-header">
+    <button id="sidebar-toggle" class="btn btn-outline-secondary d-lg-none">
+        <i class="bi bi-list"></i>
+    </button>
+    
+    <div class="d-none d-md-flex align-items-center gap-2">
+        <span class="badge bg-secondary" sec:authentication="principal.authorities[0].authority">ROLE</span>
+        <span class="text-muted">Welcome, </span>
+        <strong th:text="${#authentication.name}">Username</strong>
+    </div>
+
+    <div class="d-flex align-items-center gap-3">
+        <form th:action="@{/logout}" method="post">
+            <button type="submit" class="btn btn-sm btn-outline-danger d-flex align-items-center gap-2">
+                <i class="bi bi-box-arrow-right"></i> Logout
+            </button>
+        </form>
+    </div>
+</header>
+
+<!-- Footer Fragment -->
+<div th:fragment="footer">
+    <!-- Bootstrap Bundle with Popper JS -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+    <!-- Custom JS -->
+    <script th:src="@{/js/main.js}"></script>
+</div>
+
+</body>
+</html>

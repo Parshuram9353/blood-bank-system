@@ -1,0 +1,107 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
+<head th:replace="~{layout/base :: head('Donations Logs')}"></head>
+<body>
+
+<div class="dashboard-container">
+    <div th:replace="~{layout/base :: sidebar('donations')}"></div>
+    
+    <div class="main-wrapper">
+        <header th:replace="~{layout/base :: navbar}"></header>
+        
+        <main class="main-content">
+            <div class="d-flex justify-content-between align-items-center mb-4">
+                <div>
+                    <h2 class="m-0">Blood Donations Log</h2>
+                    <p class="text-muted m-0">Review donation histories, screen appointments, and authorize completed bags</p>
+                </div>
+                <a th:href="@{/donations/new}" class="btn btn-primary d-flex align-items-center gap-2">
+                    <i class="bi bi-heart-pulse"></i> Register New Donation
+                </a>
+            </div>
+
+            <!-- Alerts -->
+            <div th:if="${param.success}" class="alert alert-success alert-dismissible fade show" role="alert">
+                <i class="bi bi-check-circle-fill me-2"></i> Donation record finalized and processed!
+                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+            </div>
+            
+            <div th:if="${param.error}" class="alert alert-danger alert-dismissible fade show" role="alert">
+                <i class="bi bi-exclamation-octagon-fill me-2"></i> Error: <span th:text="${param.error}"></span>
+                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+            </div>
+
+            <!-- Filters -->
+            <div class="card border-0 shadow-sm p-4 rounded-4 bg-white mb-4">
+                <form th:action="@{/donations}" method="get" class="row g-3 align-items-center">
+                    <div class="col-md-9 col-lg-10">
+                        <div class="input-group">
+                            <span class="input-group-text"><i class="bi bi-search"></i></span>
+                            <input type="text" name="search" th:value="${search}" class="form-control" placeholder="Search by donor name, group, or status (PENDING, COMPLETED)...">
+                        </div>
+                    </div>
+                    <div class="col-md-3 col-lg-2">
+                        <button type="submit" class="btn btn-outline-danger w-100 py-2">Filter</button>
+                    </div>
+                </form>
+            </div>
+
+            <!-- Donations List -->
+            <div class="card border-0 shadow-sm rounded-4 overflow-hidden bg-white mb-4">
+                <div class="table-responsive">
+                    <table class="table align-middle table-hover m-0">
+                        <thead class="table-light">
+                            <tr>
+                                <th>Log ID</th>
+                                <th>Donor Name</th>
+                                <th>Blood Group</th>
+                                <th>Units (Bags)</th>
+                                <th>Donation Date</th>
+                                <th>Status</th>
+                                <th>Finalize Action</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr th:each="don : ${donations}">
+                                <td th:text="'#' + ${don.id}">ID</td>
+                                <td>
+                                    <a th:href="@{/donors/view/{id}(id=${don.donor.id})}" th:text="${don.donor.fullName}" class="text-decoration-none text-dark fw-bold">Donor</a>
+                                </td>
+                                <td>
+                                    <span class="badge bg-danger fs-6" th:text="${don.bloodGroup}">O+</span>
+                                </td>
+                                <td th:text="${don.units}">1</td>
+                                <td th:text="${don.donationDate}">Date</td>
+                                <td>
+                                    <span class="status-badge" th:classappend="'status-' + ${#strings.toLowerCase(don.status)}" th:text="${don.status}">PENDING</span>
+                                </td>
+                                <td>
+                                    <!-- finalization inline forms -->
+                                    <div th:if="${don.status == 'PENDING'}" class="d-flex align-items-center gap-2">
+                                        <form th:action="@{/donations/finalize/{id}(id=${don.id})}" method="post" class="d-flex align-items-center gap-1">
+                                            <input type="text" name="remarks" placeholder="Add screening remarks..." class="form-control form-control-sm" style="max-width: 160px;" required>
+                                            <button type="submit" name="status" value="COMPLETED" class="btn btn-sm btn-success py-1 d-flex align-items-center gap-1"><i class="bi bi-check-lg"></i> Collect</button>
+                                            <button type="submit" name="status" value="REJECTED" class="btn btn-sm btn-outline-danger py-1 d-flex align-items-center gap-1"><i class="bi bi-x-lg"></i> Reject</button>
+                                        </form>
+                                    </div>
+                                    <div th:if="${don.status != 'PENDING'}">
+                                        <small class="text-muted" th:text="${don.remarks != null ? don.remarks : '-'}">Remarks</small>
+                                    </div>
+                                </td>
+                            </tr>
+                            <tr th:if="${#lists.isEmpty(donations)}">
+                                <td colspan="7" class="text-center text-muted py-5">
+                                    No donation logs found.
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </main>
+    </div>
+</div>
+
+<div th:replace="~{layout/base :: footer}"></div>
+</body>
+</html>

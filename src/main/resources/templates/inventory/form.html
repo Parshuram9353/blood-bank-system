@@ -1,0 +1,89 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{layout/base :: head(${inventory.id == null ? 'Add Blood Stock' : 'Edit Blood Stock'})}"></head>
+<body>
+
+<div class="dashboard-container">
+    <div th:replace="~{layout/base :: sidebar('inventory')}"></div>
+    
+    <div class="main-wrapper">
+        <header th:replace="~{layout/base :: navbar}"></header>
+        
+        <main class="main-content">
+            <div class="mb-4">
+                <a th:href="@{/inventory}" class="text-decoration-none text-danger d-inline-flex align-items-center gap-1 mb-2">
+                    <i class="bi bi-arrow-left"></i> Back to stock
+                </a>
+                <h2 class="m-0" th:text="${inventory.id == null ? 'Add Blood Units' : 'Modify Blood Batch'}">Form Title</h2>
+                <p class="text-muted m-0">Log blood units received by the bank</p>
+            </div>
+
+            <div class="card border-0 shadow-sm rounded-4 p-4 bg-white">
+                <form th:action="${inventory.id == null} ? @{/inventory/new} : @{/inventory/edit/{id}(id=${inventory.id})}" th:object="${inventory}" method="post">
+                    <div class="row g-3">
+                        <div class="col-md-4">
+                            <label for="bloodGroup" class="form-label">Blood Group <span class="text-danger">*</span></label>
+                            <select id="bloodGroup" th:field="*{bloodGroup}" class="form-select" th:classappend="${#fields.hasErrors('bloodGroup')} ? 'is-invalid' : ''">
+                                <option value="">-- Select --</option>
+                                <option value="A+">A+</option>
+                                <option value="A-">A-</option>
+                                <option value="B+">B+</option>
+                                <option value="B-">B-</option>
+                                <option value="AB+">AB+</option>
+                                <option value="AB-">AB-</option>
+                                <option value="O+">O+</option>
+                                <option value="O-">O-</option>
+                            </select>
+                            <div class="invalid-feedback" th:errors="*{bloodGroup}"></div>
+                        </div>
+
+                        <div class="col-md-4">
+                            <label for="units" class="form-label">Quantity (Units/Bags) <span class="text-danger">*</span></label>
+                            <input type="number" id="units" th:field="*{units}" min="1" class="form-control" th:classappend="${#fields.hasErrors('units')} ? 'is-invalid' : ''">
+                            <div class="invalid-feedback" th:errors="*{units}"></div>
+                        </div>
+
+                        <div class="col-md-4">
+                            <label for="status" class="form-label">Stock Status</label>
+                            <select id="status" th:field="*{status}" class="form-select">
+                                <option value="AVAILABLE">Available</option>
+                                <option value="USED">Used</option>
+                                <option value="EXPIRED">Expired</option>
+                                <option value="RESERVED">Reserved</option>
+                            </select>
+                        </div>
+
+                        <div class="col-md-4">
+                            <label for="receivedDate" class="form-label">Received Date <span class="text-danger">*</span></label>
+                            <input type="date" id="receivedDate" th:field="*{receivedDate}" class="form-control" th:classappend="${#fields.hasErrors('receivedDate')} ? 'is-invalid' : ''">
+                            <div class="invalid-feedback" th:errors="*{receivedDate}"></div>
+                        </div>
+
+                        <div class="col-md-4">
+                            <label for="expiryDate" class="form-label">Expiry Date</label>
+                            <input type="date" id="expiryDate" th:field="*{expiryDate}" class="form-control" placeholder="Autocalculated if left blank (42 days)">
+                            <small class="text-muted">Defaults to 42 days from received date if left empty.</small>
+                        </div>
+
+                        <div class="col-md-4">
+                            <label for="donor" class="form-label">Donor Source (Optional)</label>
+                            <select id="donor" th:field="*{donor}" class="form-select">
+                                <option value="">-- Anonymous / Direct --</option>
+                                <option th:each="d : ${donors}" th:value="${d.id}" th:text="${d.fullName} + ' (' + ${d.bloodGroup} + ')'"></option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <div class="mt-4 pt-3 border-top d-flex gap-2">
+                        <button type="submit" class="btn btn-primary px-4 py-2">Save Stock</button>
+                        <a th:href="@{/inventory}" class="btn btn-outline-secondary px-4 py-2">Cancel</a>
+                    </div>
+                </form>
+            </div>
+        </main>
+    </div>
+</div>
+
+<div th:replace="~{layout/base :: footer}"></div>
+</body>
+</html>

@@ -1,0 +1,170 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
+<head th:replace="~{layout/base :: head('Staff Dashboard')}"></head>
+<body>
+
+<div class="dashboard-container">
+    <!-- Sidebar -->
+    <div th:replace="~{layout/base :: sidebar('dashboard')}"></div>
+    
+    <div class="main-wrapper">
+        <!-- Navbar -->
+        <header th:replace="~{layout/base :: navbar}"></header>
+        
+        <!-- Main Content -->
+        <main class="main-content">
+            <div class="d-flex justify-content-between align-items-center mb-4">
+                <div>
+                    <h2 class="m-0">Staff Dashboard</h2>
+                    <p class="text-muted m-0">Inventory controls, requests, and donation approvals</p>
+                </div>
+                <div class="d-flex gap-2">
+                    <a th:href="@{/donations/new}" class="btn btn-outline-danger btn-sm d-flex align-items-center gap-1">
+                        <i class="bi bi-heart-pulse"></i> Log Donation
+                    </a>
+                    <a th:href="@{/requests/new}" class="btn btn-danger btn-sm d-flex align-items-center gap-1">
+                        <i class="bi bi-send-exclamation"></i> New Request
+                    </a>
+                </div>
+            </div>
+
+            <!-- Stats -->
+            <div class="row g-4 mb-4">
+                <div class="col-md-4">
+                    <div class="stat-card">
+                        <div>
+                            <span class="text-muted fw-semibold">Available Units</span>
+                            <div class="stat-number" th:text="${availableUnits}">0</div>
+                            <small class="text-muted">In stock bags</small>
+                        </div>
+                        <div class="stat-icon"><i class="bi bi-droplet-fill text-danger"></i></div>
+                    </div>
+                </div>
+                
+                <div class="col-md-4">
+                    <div class="stat-card">
+                        <div>
+                            <span class="text-muted fw-semibold">Pending Requests</span>
+                            <div class="stat-number" th:text="${pendingRequests}">0</div>
+                            <small class="text-danger"><i class="bi bi-exclamation-circle-fill"></i> Review required</small>
+                        </div>
+                        <div class="stat-icon bg-danger-subtle"><i class="bi bi-send-fill text-danger"></i></div>
+                    </div>
+                </div>
+
+                <div class="col-md-4">
+                    <div class="stat-card">
+                        <div>
+                            <span class="text-muted fw-semibold">Total Donations logged</span>
+                            <div class="stat-number" th:text="${totalDonations}">0</div>
+                            <small class="text-muted">History count</small>
+                        </div>
+                        <div class="stat-icon"><i class="bi bi-check2-circle text-success"></i></div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Blood Stock Quick View -->
+            <div class="card border-0 shadow-sm p-4 rounded-4 bg-white mb-4">
+                <h5 class="mb-3">Quick Stock Inventory Count</h5>
+                <div class="row row-cols-2 row-cols-sm-4 row-cols-lg-8 g-3">
+                    <div class="col" th:each="entry : ${stockOverview}">
+                        <div class="p-3 text-center rounded-3 border bg-light">
+                            <h4 class="text-danger m-0 font-heading" th:text="${entry.key}">O+</h4>
+                            <div class="fs-5 fw-bold mt-1" th:text="${entry.value}">0</div>
+                            <span class="text-muted" style="font-size: 11px;">units</span>
+                            
+                            <!-- Low stock alert visual check -->
+                            <div th:if="${entry.value < 5}" class="mt-1">
+                                <span class="badge bg-danger-subtle text-danger" style="font-size: 9px;">LOW</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Recent Requests & Donations -->
+            <div class="row g-4">
+                <!-- Recent Pending Requests -->
+                <div class="col-lg-6">
+                    <div class="card border-0 shadow-sm p-4 rounded-4 bg-white" style="min-height: 380px;">
+                        <div class="d-flex justify-content-between align-items-center mb-3">
+                            <h5 class="m-0">Recent Requests</h5>
+                            <a th:href="@{/requests}" class="btn btn-link btn-sm text-danger text-decoration-none">View All</a>
+                        </div>
+                        <div class="table-responsive">
+                            <table class="table align-middle table-hover m-0">
+                                <thead>
+                                    <tr>
+                                        <th>Patient</th>
+                                        <th>Group</th>
+                                        <th>Units</th>
+                                        <th>Urgency</th>
+                                        <th>Action</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <tr th:each="req : ${recentRequests}">
+                                        <td th:text="${req.patientName}">Patient Name</td>
+                                        <td th:text="${req.bloodGroup}">O+</td>
+                                        <td th:text="${req.unitsRequired}">1</td>
+                                        <td>
+                                            <span class="status-badge" th:classappend="'status-' + ${#strings.toLowerCase(req.urgency)}" th:text="${req.urgency}">NORMAL</span>
+                                        </td>
+                                        <td>
+                                            <a th:href="@{/requests/view/{id}(id=${req.id})}" class="btn btn-sm btn-outline-secondary py-1">Review</a>
+                                        </td>
+                                    </tr>
+                                    <tr th:if="${#lists.isEmpty(recentRequests)}">
+                                        <td colspan="5" class="text-center text-muted py-4">No requests found.</td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Recent Donations appointments -->
+                <div class="col-lg-6">
+                    <div class="card border-0 shadow-sm p-4 rounded-4 bg-white" style="min-height: 380px;">
+                        <div class="d-flex justify-content-between align-items-center mb-3">
+                            <h5 class="m-0">Recent Donations</h5>
+                            <a th:href="@{/donations}" class="btn btn-link btn-sm text-danger text-decoration-none">View All</a>
+                        </div>
+                        <div class="table-responsive">
+                            <table class="table align-middle table-hover m-0">
+                                <thead>
+                                    <tr>
+                                        <th>Donor</th>
+                                        <th>Group</th>
+                                        <th>Units</th>
+                                        <th>Date</th>
+                                        <th>Status</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <tr th:each="don : ${recentDonations}">
+                                        <td th:text="${don.donor.fullName}">Donor Name</td>
+                                        <td th:text="${don.bloodGroup}">AB+</td>
+                                        <td th:text="${don.units}">1</td>
+                                        <td th:text="${don.donationDate}">2026-06-03</td>
+                                        <td>
+                                            <span class="status-badge" th:classappend="'status-' + ${#strings.toLowerCase(don.status)}" th:text="${don.status}">PENDING</span>
+                                        </td>
+                                    </tr>
+                                    <tr th:if="${#lists.isEmpty(recentDonations)}">
+                                        <td colspan="5" class="text-center text-muted py-4">No donation logs found.</td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+</div>
+
+<div th:replace="~{layout/base :: footer}"></div>
+</body>
+</html>

@@ -1,0 +1,74 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{layout/base :: head('Audit Logs')}"></head>
+<body>
+
+<div class="dashboard-container">
+    <div th:replace="~{layout/base :: sidebar('logs')}"></div>
+    
+    <div class="main-wrapper">
+        <header th:replace="~{layout/base :: navbar}"></header>
+        
+        <main class="main-content">
+            <div class="mb-4">
+                <h2 class="m-0">System Activity & Audit Logs</h2>
+                <p class="text-muted m-0">Review system events, staff actions, and database transactions</p>
+            </div>
+
+            <!-- Logs Table -->
+            <div class="card border-0 shadow-sm rounded-4 overflow-hidden bg-white mb-4">
+                <div class="table-responsive">
+                    <table class="table align-middle table-hover m-0">
+                        <thead class="table-light">
+                            <tr>
+                                <th>Log ID</th>
+                                <th>Timestamp</th>
+                                <th>Action Event</th>
+                                <th>Details</th>
+                                <th>Triggered By</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr th:each="log : ${logs}">
+                                <td th:text="'#' + ${log.id}">ID</td>
+                                <td th:text="${#temporals.format(log.timestamp, 'yyyy-MM-dd HH:mm:ss')}">Time</td>
+                                <td>
+                                    <span class="badge bg-secondary" th:text="${log.action}">EVENT</span>
+                                </td>
+                                <td class="text-wrap" style="max-width: 400px;" th:text="${log.details}">Details log description</td>
+                                <td>
+                                    <span th:if="${log.user != null}" th:text="${log.user.username}" class="fw-bold">User</span>
+                                    <span th:if="${log.user == null}" class="text-muted">SYSTEM</span>
+                                </td>
+                            </tr>
+                            <tr th:if="${#lists.isEmpty(logs)}">
+                                <td colspan="5" class="text-center text-muted py-5">
+                                    No activity logs recorded.
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <!-- Pagination -->
+            <nav th:if="${totalPages > 1}" class="d-flex justify-content-center">
+                <ul class="pagination pagination-sm m-0">
+                    <li class="page-item" th:classappend="${currentPage == 0} ? 'disabled' : ''">
+                        <a class="page-link" th:href="@{/admin/logs(page=${currentPage - 1})}">Previous</a>
+                    </li>
+                    <li class="page-item" th:each="i : ${#numbers.sequence(0, totalPages - 1)}" th:classappend="${currentPage == i} ? 'active' : ''">
+                        <a class="page-link" th:href="@{/admin/logs(page=${i})}" th:text="${i + 1}">1</a>
+                    </li>
+                    <li class="page-item" th:classappend="${currentPage == totalPages - 1} ? 'disabled' : ''">
+                        <a class="page-link" th:href="@{/admin/logs(page=${currentPage + 1})}">Next</a>
+                    </li>
+                </ul>
+            </nav>
+        </main>
+    </div>
+</div>
+
+<div th:replace="~{layout/base :: footer}"></div>
+</body>
+</html>

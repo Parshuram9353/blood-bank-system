@@ -1,0 +1,136 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
+<head th:replace="~{layout/base :: head('Admin Dashboard')}"></head>
+<body>
+
+<div class="dashboard-container">
+    <!-- Sidebar -->
+    <div th:replace="~{layout/base :: sidebar('dashboard')}"></div>
+    
+    <div class="main-wrapper">
+        <!-- Navbar -->
+        <header th:replace="~{layout/base :: navbar}"></header>
+        
+        <!-- Main Content -->
+        <main class="main-content">
+            <div class="d-flex justify-content-between align-items-center mb-4">
+                <div>
+                    <h2 class="m-0">Control Dashboard</h2>
+                    <p class="text-muted m-0">Administrator overview of the Blood Bank operations</p>
+                </div>
+                <span class="text-muted" th:text="${#temporals.format(#temporals.createNow(), 'EEEE, dd MMMM yyyy')}">Date</span>
+            </div>
+
+            <!-- Stats Grid -->
+            <div class="row g-4 mb-5">
+                <div class="col-md-6 col-lg-3">
+                    <div class="stat-card">
+                        <div>
+                            <span class="text-muted fw-semibold">Total Donors</span>
+                            <div class="stat-number" th:text="${totalDonors}">0</div>
+                            <small class="text-success"><i class="bi bi-arrow-up-short"></i> Registered profiles</small>
+                        </div>
+                        <div class="stat-icon"><i class="bi bi-people-fill"></i></div>
+                    </div>
+                </div>
+                
+                <div class="col-md-6 col-lg-3">
+                    <div class="stat-card">
+                        <div>
+                            <span class="text-muted fw-semibold">Blood Stock</span>
+                            <div class="stat-number" th:text="${availableUnits}">0</div>
+                            <small class="text-muted">Total active bags</small>
+                        </div>
+                        <div class="stat-icon"><i class="bi bi-droplet-fill"></i></div>
+                    </div>
+                </div>
+                
+                <div class="col-md-6 col-lg-3">
+                    <div class="stat-card">
+                        <div>
+                            <span class="text-muted fw-semibold">Blood Requests</span>
+                            <div class="stat-number" th:text="${totalRequests}">0</div>
+                            <small class="text-danger" th:text="${pendingRequests} + ' Pending approvals'"></small>
+                        </div>
+                        <div class="stat-icon"><i class="bi bi-send-exclamation-fill"></i></div>
+                    </div>
+                </div>
+
+                <div class="col-md-6 col-lg-3">
+                    <div class="stat-card">
+                        <div>
+                            <span class="text-muted fw-semibold">Expired Stock</span>
+                            <div class="stat-number text-danger" th:text="${expiredUnits}">0</div>
+                            <small class="text-danger"><i class="bi bi-shield-fill-x"></i> Needs removal</small>
+                        </div>
+                        <div class="stat-icon bg-danger-subtle"><i class="bi bi-heartbreak-fill text-danger"></i></div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- System Expiry Warnings -->
+            <div th:if="${expiredUnits > 0}" class="glass-alert mb-4">
+                <i class="bi bi-exclamation-octagon-fill text-danger fs-4 animate-pulse"></i>
+                <div>
+                    <strong>Attention Admin:</strong> There are <span th:text="${expiredUnits}"></span> expired blood units currently in inventory. Please clean them up on the stock page.
+                </div>
+            </div>
+
+            <!-- Main Panel Details -->
+            <div class="row g-4">
+                <!-- Stock Graph -->
+                <div class="col-lg-7">
+                    <div class="card border-0 shadow-sm p-4 rounded-4" style="height: 400px; background-color: white;">
+                        <h5 class="mb-4">Inventory Levels by Blood Group</h5>
+                        <div class="position-relative flex-grow-1" style="height: 290px;">
+                            <canvas id="inventoryChart"></canvas>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Recent Logs -->
+                <div class="col-lg-5">
+                    <div class="card border-0 shadow-sm p-4 rounded-4 bg-white" style="height: 400px; display: flex; flex-direction: column;">
+                        <h5 class="mb-3">Recent Security & Audit Logs</h5>
+                        <div class="table-responsive flex-grow-1" style="overflow-y: auto;">
+                            <table class="table align-middle table-hover m-0">
+                                <thead>
+                                    <tr>
+                                        <th>Timestamp</th>
+                                        <th>Action</th>
+                                        <th>User</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <tr th:each="log : ${recentLogs}">
+                                        <td class="text-muted" th:text="${#temporals.format(log.timestamp, 'HH:mm')}">Time</td>
+                                        <td>
+                                            <strong th:text="${log.action}">ACTION</strong><br>
+                                            <small class="text-muted d-block text-truncate" style="max-width: 180px;" th:text="${log.details}">details</small>
+                                        </td>
+                                        <td th:text="${log.user != null ? log.user.username : 'SYSTEM'}">username</td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+</div>
+
+<div th:replace="~{layout/base :: footer}"></div>
+
+<!-- Chart seeding script -->
+<script th:inline="javascript">
+    /*<![CDATA[*/
+    document.addEventListener("DOMContentLoaded", function() {
+        const keys = /*[[${chartKeys}]]*/ [];
+        const values = /*[[${chartValues}]]*/ [];
+        initializeInventoryChart("inventoryChart", keys, values);
+    });
+    /*]]>*/
+</script>
+</body>
+</html>

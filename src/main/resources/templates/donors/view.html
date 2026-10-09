@@ -1,0 +1,116 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{layout/base :: head('Donor Details')}"></head>
+<body>
+
+<div class="dashboard-container">
+    <div th:replace="~{layout/base :: sidebar('donors')}"></div>
+    
+    <div class="main-wrapper">
+        <header th:replace="~{layout/base :: navbar}"></header>
+        
+        <main class="main-content">
+            <div class="mb-4">
+                <a th:href="@{/donors}" class="text-decoration-none text-danger d-inline-flex align-items-center gap-1 mb-2">
+                    <i class="bi bi-arrow-left"></i> Back to registry
+                </a>
+                <h2 class="m-0" th:text="${donor.fullName}">Donor Full Name</h2>
+                <p class="text-muted m-0">Detailed view of donor history and demographics</p>
+            </div>
+
+            <div class="row g-4">
+                <!-- Info Summary -->
+                <div class="col-lg-4">
+                    <div class="card border-0 shadow-sm p-4 rounded-4 bg-white mb-4">
+                        <div class="text-center pb-4 border-bottom">
+                            <div class="stat-icon bg-danger-subtle text-danger mx-auto mb-3" style="width: 80px; height: 80px; font-size: 40px; border-radius: 50%;">
+                                <i class="bi bi-person-fill"></i>
+                            </div>
+                            <h4 class="m-0" th:text="${donor.fullName}">John Doe</h4>
+                            <span class="badge bg-danger mt-2 fs-6" th:text="${donor.bloodGroup}">O+</span>
+                        </div>
+                        
+                        <div class="py-3">
+                            <div class="d-flex justify-content-between mb-3">
+                                <span class="text-muted">Eligibility:</span>
+                                <span class="status-badge" th:classappend="'status-' + ${#strings.toLowerCase(donor.eligibilityStatus)}" th:text="${donor.eligibilityStatus}">ELIGIBLE</span>
+                            </div>
+                            <div class="d-flex justify-content-between mb-3" th:if="${!isEligible and daysUntilEligible > 0}">
+                                <span class="text-muted">Deferral Time:</span>
+                                <span class="text-warning fw-bold" th:text="${daysUntilEligible} + ' days left'">90 days</span>
+                            </div>
+                            <div class="d-flex justify-content-between mb-3">
+                                <span class="text-muted">Gender:</span>
+                                <strong th:text="${donor.gender}">MALE</strong>
+                            </div>
+                            <div class="d-flex justify-content-between mb-3">
+                                <span class="text-muted">Birth Date:</span>
+                                <strong th:text="${donor.dateOfBirth}">1990-01-01</strong>
+                            </div>
+                            <div class="d-flex justify-content-between">
+                                <span class="text-muted">Last Donation:</span>
+                                <strong th:text="${donor.lastDonationDate != null ? donor.lastDonationDate : 'Never'}">Date</strong>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="card border-0 shadow-sm p-4 rounded-4 bg-white">
+                        <h5 class="mb-3">Contact and Address</h5>
+                        <div class="mb-3">
+                            <small class="text-muted d-block">Phone Number</small>
+                            <span th:text="${donor.contactNumber}">9876543210</span>
+                        </div>
+                        <div class="mb-3">
+                            <small class="text-muted d-block">Email Address</small>
+                            <span th:text="${donor.email}">email</span>
+                        </div>
+                        <div>
+                            <small class="text-muted d-block">Residential Address</small>
+                            <span th:text="${donor.address}">address</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- History -->
+                <div class="col-lg-8">
+                    <div class="card border-0 shadow-sm p-4 rounded-4 bg-white" style="min-height: 400px;">
+                        <h5 class="mb-3">Donation Records for this Donor</h5>
+                        <div class="table-responsive">
+                            <table class="table align-middle table-hover m-0">
+                                <thead class="table-light">
+                                    <tr>
+                                        <th>Donation ID</th>
+                                        <th>Date</th>
+                                        <th>Units</th>
+                                        <th>Status</th>
+                                        <th>Remarks</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <tr th:each="don : ${donations}">
+                                        <td th:text="'#' + ${don.id}">#1</td>
+                                        <td th:text="${don.donationDate}">2026-06-03</td>
+                                        <td th:text="${don.units}">1</td>
+                                        <td>
+                                            <span class="status-badge" th:classappend="'status-' + ${#strings.toLowerCase(don.status)}" th:text="${don.status}">COMPLETED</span>
+                                        </td>
+                                        <td th:text="${don.remarks}">remarks</td>
+                                    </tr>
+                                    <tr th:if="${#lists.isEmpty(donations)}">
+                                        <td colspan="5" class="text-center text-muted py-5">
+                                            No donation attempts logged for this profile.
+                                        </td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+</div>
+
+<div th:replace="~{layout/base :: footer}"></div>
+</body>
+</html>

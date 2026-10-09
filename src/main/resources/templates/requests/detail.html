@@ -1,0 +1,143 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
+<head th:replace="~{layout/base :: head('Request Details')}"></head>
+<body>
+
+<div class="dashboard-container">
+    <div th:replace="~{layout/base :: sidebar('requests')}"></div>
+    
+    <div class="main-wrapper">
+        <header th:replace="~{layout/base :: navbar}"></header>
+        
+        <main class="main-content">
+            <div class="mb-4">
+                <a th:href="@{/requests}" class="text-decoration-none text-danger d-inline-flex align-items-center gap-1 mb-2">
+                    <i class="bi bi-arrow-left"></i> Back to registry
+                </a>
+                <h2 class="m-0" th:text="'Blood Request Details #' + ${bloodRequest.id}">Request Details</h2>
+                <p class="text-muted m-0">Review status, patient data, and authorization paths</p>
+            </div>
+
+            <!-- Custom Message Prompts -->
+            <div th:if="${param.success}" class="alert alert-success alert-dismissible fade show" role="alert">
+                <i class="bi bi-check-circle-fill me-2"></i> Request updated successfully!
+                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+            </div>
+            
+            <div th:if="${param.error}" class="alert alert-danger alert-dismissible fade show" role="alert">
+                <i class="bi bi-exclamation-octagon-fill me-2"></i> Action failed: <span th:text="${param.error}">Error message details</span>
+                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+            </div>
+
+            <div class="row g-4">
+                <div class="col-lg-8">
+                    <!-- Detail Card -->
+                    <div class="card border-0 shadow-sm p-4 rounded-4 bg-white mb-4">
+                        <div class="d-flex justify-content-between align-items-center border-bottom pb-3 mb-3">
+                            <h5 class="m-0 fw-bold">Patient Information</h5>
+                            <span class="status-badge" th:classappend="'status-' + ${#strings.toLowerCase(bloodRequest.status)}" th:text="${bloodRequest.status}">PENDING</span>
+                        </div>
+                        
+                        <div class="row g-3">
+                            <div class="col-sm-6">
+                                <small class="text-muted d-block">Patient Name</small>
+                                <strong class="fs-5" th:text="${bloodRequest.patientName}">Robert Baratheon</strong>
+                            </div>
+                            <div class="col-sm-6">
+                                <small class="text-muted d-block">Blood Group Required</small>
+                                <span class="badge bg-danger fs-5" th:text="${bloodRequest.bloodGroup}">O+</span>
+                            </div>
+                            <div class="col-sm-6">
+                                <small class="text-muted d-block">Volume Required</small>
+                                <span class="fs-5 fw-bold" th:text="${bloodRequest.unitsRequired} + ' units (bags)'">2 bags</span>
+                            </div>
+                            <div class="col-sm-6">
+                                <small class="text-muted d-block">Target Deadline Date</small>
+                                <span class="fs-5 fw-semibold text-danger" th:text="${bloodRequest.requiredByDate}">2026-06-03</span>
+                            </div>
+                            <div class="col-sm-6">
+                                <small class="text-muted d-block">Priority (Urgency)</small>
+                                <span class="status-badge fs-6" th:classappend="'status-' + ${#strings.toLowerCase(bloodRequest.urgency)}" th:text="${bloodRequest.urgency}">NORMAL</span>
+                            </div>
+                            <div class="col-sm-6" th:if="${bloodRequest.handledBy != null}">
+                                <small class="text-muted d-block">Handled By Staff</small>
+                                <span class="fw-semibold" th:text="${bloodRequest.handledBy.username}">staff</span>
+                            </div>
+                            <div class="col-12 mt-3 pt-3 border-top">
+                                <small class="text-muted d-block">Notes / Remarks</small>
+                                <p class="m-0 lead fs-6" th:text="${bloodRequest.notes != null ? bloodRequest.notes : 'No clinical details provided.'}">Notes description text</p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Hospital Details Card -->
+                    <div class="card border-0 shadow-sm p-4 rounded-4 bg-white" th:if="${bloodRequest.hospital != null}">
+                        <h5 class="fw-bold border-bottom pb-2 mb-3">Requesting Hospital Details</h5>
+                        <div class="row g-2">
+                            <div class="col-sm-6">
+                                <small class="text-muted d-block">Hospital Name</small>
+                                <strong th:text="${bloodRequest.hospital.name}">City Hospital</strong>
+                            </div>
+                            <div class="col-sm-6">
+                                <small class="text-muted d-block">Contact Phone</small>
+                                <span th:text="${bloodRequest.hospital.contactNumber}">9876543210</span>
+                            </div>
+                            <div class="col-sm-6">
+                                <small class="text-muted d-block">Email Address</small>
+                                <span th:text="${bloodRequest.hospital.email}">info@hosp.org</span>
+                            </div>
+                            <div class="col-12">
+                                <small class="text-muted d-block">Address</small>
+                                <span th:text="${bloodRequest.hospital.address}">Hospital street lines</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="col-lg-4">
+                    <!-- Action Panel -->
+                    <div th:if="${bloodRequest.status == 'PENDING'}" class="card border-0 shadow-sm p-4 rounded-4 bg-light border">
+                        <h5 class="fw-bold mb-3"><i class="bi bi-shield-lock-fill"></i> Authorization Controls</h5>
+                        <p class="text-muted small">Select an action below to fulfill or reject this blood request. Approving will automatically deduct available blood stock matching the request's blood group.</p>
+                        
+                        <div class="d-flex flex-column gap-3 mt-4">
+                            <!-- Approve button -->
+                            <form th:action="@{/requests/approve/{id}(id=${bloodRequest.id})}" method="post">
+                                <button type="submit" class="btn btn-success w-100 py-2.5 d-flex align-items-center justify-content-center gap-2">
+                                    <i class="bi bi-check2-circle"></i> Approve & Issue Stock
+                                </button>
+                            </form>
+
+                            <!-- Reject toggle collapse -->
+                            <button class="btn btn-outline-danger w-100 py-2.5 d-flex align-items-center justify-content-center gap-2" type="button" data-bs-toggle="collapse" data-bs-target="#rejectCollapse">
+                                <i class="bi bi-x-circle"></i> Reject Request
+                            </button>
+                            
+                            <div class="collapse" id="rejectCollapse">
+                                <div class="card card-body mt-2 border-danger bg-white">
+                                    <form th:action="@{/requests/reject/{id}(id=${bloodRequest.id})}" method="post">
+                                        <div class="mb-3">
+                                            <label for="reason" class="form-label text-danger small fw-bold">Rejection Reason</label>
+                                            <textarea id="reason" name="reason" class="form-control form-control-sm" rows="3" required placeholder="Explain why the request is rejected (e.g. Insufficient inventory)..."></textarea>
+                                        </div>
+                                        <button type="submit" class="btn btn-danger btn-sm w-100">Submit Rejection</button>
+                                    </form>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div th:if="${bloodRequest.status != 'PENDING'}" class="card border-0 shadow-sm p-4 rounded-4 bg-white text-center">
+                        <i class="bi fs-1" th:classappend="${bloodRequest.status == 'FULFILLED' ? 'bi-check-circle-fill text-success' : 'bi-x-circle-fill text-danger'}"></i>
+                        <h5 class="mt-3 fw-bold">Request Finalized</h5>
+                        <p class="text-muted small">This request was processed and is locked from further edits.</p>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+</div>
+
+<div th:replace="~{layout/base :: footer}"></div>
+</body>
+</html>

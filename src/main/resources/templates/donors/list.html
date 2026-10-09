@@ -1,0 +1,114 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
+<head th:replace="~{layout/base :: head('Donors List')}"></head>
+<body>
+
+<div class="dashboard-container">
+    <div th:replace="~{layout/base :: sidebar('donors')}"></div>
+    
+    <div class="main-wrapper">
+        <header th:replace="~{layout/base :: navbar}"></header>
+        
+        <main class="main-content">
+            <div class="d-flex justify-content-between align-items-center mb-4">
+                <div>
+                    <h2 class="m-0">Donor Registry</h2>
+                    <p class="text-muted m-0">Browse and manage registered blood donors</p>
+                </div>
+                <a th:href="@{/donors/new}" class="btn btn-primary d-flex align-items-center gap-2">
+                    <i class="bi bi-person-plus"></i> Add New Donor
+                </a>
+            </div>
+
+            <!-- Success Alerts -->
+            <div th:if="${param.success}" class="alert alert-success alert-dismissible fade show" role="alert">
+                <i class="bi bi-check-circle-fill me-2"></i> Action processed successfully!
+                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+            </div>
+
+            <!-- Search Filters -->
+            <div class="card border-0 shadow-sm p-4 rounded-4 bg-white mb-4">
+                <form th:action="@{/donors}" method="get" class="row g-3 align-items-center">
+                    <div class="col-md-9 col-lg-10">
+                        <div class="input-group">
+                            <span class="input-group-text"><i class="bi bi-search"></i></span>
+                            <input type="text" name="search" th:value="${search}" class="form-control" placeholder="Search by name, email, or exact blood group (e.g. A+)...">
+                        </div>
+                    </div>
+                    <div class="col-md-3 col-lg-2">
+                        <button type="submit" class="btn btn-outline-danger w-100 py-2">Filter Records</button>
+                    </div>
+                </form>
+            </div>
+
+            <!-- Donors Table -->
+            <div class="card border-0 shadow-sm rounded-4 overflow-hidden bg-white mb-4">
+                <div class="table-responsive">
+                    <table class="table align-middle table-hover m-0">
+                        <thead class="table-light">
+                            <tr>
+                                <th>Name</th>
+                                <th>Blood Group</th>
+                                <th>Contact info</th>
+                                <th>Eligibility</th>
+                                <th>Last Donation</th>
+                                <th class="text-end">Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr th:each="donor : ${donors}">
+                                <td>
+                                    <div class="fw-bold" th:text="${donor.fullName}">John Doe</div>
+                                    <small class="text-muted" th:text="${donor.gender}"></small>
+                                </td>
+                                <td>
+                                    <span class="badge bg-danger fs-6" th:text="${donor.bloodGroup}">O+</span>
+                                </td>
+                                <td>
+                                    <div th:text="${donor.contactNumber}">9876543210</div>
+                                    <small class="text-muted" th:text="${donor.email}">email</small>
+                                </td>
+                                <td>
+                                    <span class="status-badge" th:classappend="'status-' + ${#strings.toLowerCase(donor.eligibilityStatus)}" th:text="${donor.eligibilityStatus}">ELIGIBLE</span>
+                                </td>
+                                <td th:text="${donor.lastDonationDate != null ? donor.lastDonationDate : 'Never'}">Date</td>
+                                <td class="text-end">
+                                    <div class="d-flex justify-content-end gap-2">
+                                        <a th:href="@{/donors/view/{id}(id=${donor.id})}" class="btn btn-sm btn-outline-info" title="View details"><i class="bi bi-eye"></i></a>
+                                        <a th:href="@{/donors/edit/{id}(id=${donor.id})}" class="btn btn-sm btn-outline-warning" title="Edit details"><i class="bi bi-pencil"></i></a>
+                                        <a sec:authorize="hasRole('ADMIN')" th:href="@{/donors/delete/{id}(id=${donor.id})}" class="btn btn-sm btn-outline-danger" onclick="return confirm('Are you sure you want to delete this donor?')" title="Delete"><i class="bi bi-trash"></i></a>
+                                    </div>
+                                </td>
+                            </tr>
+                            <tr th:if="${#lists.isEmpty(donors)}">
+                                <td colspan="6" class="text-center text-muted py-5">
+                                    <i class="bi bi-person-x fs-1 d-block text-white-50"></i>
+                                    No donors found matching the query.
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <!-- Pagination -->
+            <nav th:if="${totalPages > 1}" class="d-flex justify-content-center">
+                <ul class="pagination pagination-sm m-0">
+                    <li class="page-item" th:classappend="${currentPage == 0} ? 'disabled' : ''">
+                        <a class="page-link" th:href="@{/donors(search=${search}, page=${currentPage - 1})}">Previous</a>
+                    </li>
+                    <li class="page-item" th:each="i : ${#numbers.sequence(0, totalPages - 1)}" th:classappend="${currentPage == i} ? 'active' : ''">
+                        <a class="page-link" th:href="@{/donors(search=${search}, page=${i})}" th:text="${i + 1}">1</a>
+                    </li>
+                    <li class="page-item" th:classappend="${currentPage == totalPages - 1} ? 'disabled' : ''">
+                        <a class="page-link" th:href="@{/donors(search=${search}, page=${currentPage + 1})}">Next</a>
+                    </li>
+                </ul>
+            </nav>
+        </main>
+    </div>
+</div>
+
+<div th:replace="~{layout/base :: footer}"></div>
+</body>
+</html>

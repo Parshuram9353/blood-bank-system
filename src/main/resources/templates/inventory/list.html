@@ -1,0 +1,120 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
+<head th:replace="~{layout/base :: head('Blood Inventory')}"></head>
+<body>
+
+<div class="dashboard-container">
+    <div th:replace="~{layout/base :: sidebar('inventory')}"></div>
+    
+    <div class="main-wrapper">
+        <header th:replace="~{layout/base :: navbar}"></header>
+        
+        <main class="main-content">
+            <div class="d-flex justify-content-between align-items-center mb-4">
+                <div>
+                    <h2 class="m-0">Blood Inventory Stock</h2>
+                    <p class="text-muted m-0">Track active blood units, screen expiries, and adjust stock counts</p>
+                </div>
+                <a th:href="@{/inventory/new}" class="btn btn-primary d-flex align-items-center gap-2">
+                    <i class="bi bi-plus-circle"></i> Add Blood Stock
+                </a>
+            </div>
+
+            <!-- Notification Messages -->
+            <div th:if="${param.success}" class="alert alert-success alert-dismissible fade show" role="alert">
+                <i class="bi bi-check-circle-fill me-2"></i> Inventory updated successfully!
+                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+            </div>
+
+            <!-- Group Stock Overview Box -->
+            <div class="card border-0 shadow-sm p-4 rounded-4 bg-white mb-4">
+                <h5 class="mb-3">Stock count by blood group</h5>
+                <div class="row row-cols-2 row-cols-sm-4 row-cols-lg-8 g-3">
+                    <div class="col" th:each="entry : ${stockMap}">
+                        <div class="p-3 text-center rounded-3 border bg-light">
+                            <h4 class="text-danger m-0 font-heading" th:text="${entry.key}">O+</h4>
+                            <div class="fs-5 fw-bold mt-1" th:text="${entry.value}">0</div>
+                            
+                            <!-- Low stock alert check -->
+                            <div th:if="${entry.value < 5}" class="mt-1">
+                                <span class="badge bg-danger-subtle text-danger" style="font-size: 9px;">LOW STOCK</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Filters -->
+            <div class="card border-0 shadow-sm p-4 rounded-4 bg-white mb-4">
+                <form th:action="@{/inventory}" method="get" class="row g-3 align-items-center">
+                    <div class="col-md-9 col-lg-10">
+                        <div class="input-group">
+                            <span class="input-group-text"><i class="bi bi-search"></i></span>
+                            <input type="text" name="search" th:value="${search}" class="form-control" placeholder="Search by blood group or stock status (AVAILABLE, EXPIRED, USED)...">
+                        </div>
+                    </div>
+                    <div class="col-md-3 col-lg-2">
+                        <button type="submit" class="btn btn-outline-danger w-100 py-2">Filter</button>
+                    </div>
+                </form>
+            </div>
+
+            <!-- Inventory Table -->
+            <div class="card border-0 shadow-sm rounded-4 overflow-hidden bg-white">
+                <div class="table-responsive">
+                    <table class="table align-middle table-hover m-0">
+                        <thead class="table-light">
+                            <tr>
+                                <th>Batch ID</th>
+                                <th>Blood Group</th>
+                                <th>Units (Bags)</th>
+                                <th>Received Date</th>
+                                <th>Expiry Date</th>
+                                <th>Status</th>
+                                <th>Donor Source</th>
+                                <th class="text-end">Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr th:each="item : ${inventoryList}" th:classappend="${item.isExpired() and item.status == 'AVAILABLE'} ? 'table-danger' : ''">
+                                <td th:text="'#' + ${item.id}">Batch ID</td>
+                                <td>
+                                    <span class="badge bg-danger fs-6" th:text="${item.bloodGroup}">O+</span>
+                                </td>
+                                <td th:text="${item.units}">1</td>
+                                <td th:text="${item.receivedDate}">Received</td>
+                                <td>
+                                    <div th:text="${item.expiryDate}">Expiry</div>
+                                    <small th:if="${item.isExpired() and item.status == 'AVAILABLE'}" class="text-danger fw-bold"><i class="bi bi-calendar-x"></i> EXPIRED</small>
+                                </td>
+                                <td>
+                                    <span class="status-badge" th:classappend="'status-' + ${#strings.toLowerCase(item.status)}" th:text="${item.status}">AVAILABLE</span>
+                                </td>
+                                <td>
+                                    <a th:if="${item.donor != null}" th:href="@{/donors/view/{id}(id=${item.donor.id})}" th:text="${item.donor.fullName}" class="text-decoration-none text-dark fw-bold">Donor</a>
+                                    <span th:if="${item.donor == null}" class="text-muted">Anonymous</span>
+                                </td>
+                                <td class="text-end">
+                                    <div class="d-flex justify-content-end gap-2">
+                                        <a th:href="@{/inventory/edit/{id}(id=${item.id})}" class="btn btn-sm btn-outline-warning"><i class="bi bi-pencil"></i></a>
+                                        <a sec:authorize="hasRole('ADMIN')" th:href="@{/inventory/delete/{id}(id=${item.id})}" class="btn btn-sm btn-outline-danger" onclick="return confirm('Are you sure you want to delete this batch?')"><i class="bi bi-trash"></i></a>
+                                    </div>
+                                </td>
+                            </tr>
+                            <tr th:if="${#lists.isEmpty(inventoryList)}">
+                                <td colspan="8" class="text-center text-muted py-5">
+                                    <i class="bi bi-droplet-xs fs-1 d-block text-white-50"></i>
+                                    No blood batches found in the inventory.
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </main>
+    </div>
+</div>
+
+<div th:replace="~{layout/base :: footer}"></div>
+</body>
+</html>

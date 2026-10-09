@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{layout/base :: head('Register Donation')}"></head>
+<body>
+
+<div class="dashboard-container">
+    <div th:replace="~{layout/base :: sidebar('donations')}"></div>
+    
+    <div class="main-wrapper">
+        <header th:replace="~{layout/base :: navbar}"></header>
+        
+        <main class="main-content">
+            <div class="mb-4">
+                <a th:href="@{/donations}" class="text-decoration-none text-danger d-inline-flex align-items-center gap-1 mb-2">
+                    <i class="bi bi-arrow-left"></i> Back to logs
+                </a>
+                <h2 class="m-0">Log a Blood Donation</h2>
+                <p class="text-muted m-0">Add a new donation event to screen and collect blood units</p>
+            </div>
+
+            <div th:if="${errorMessage}" class="alert alert-danger" th:text="${errorMessage}"></div>
+
+            <div class="card border-0 shadow-sm rounded-4 p-4 bg-white">
+                <form th:action="@{/donations/new}" th:object="${donation}" method="post">
+                    <div class="row g-3">
+                        <div class="col-md-6">
+                            <label for="donor" class="form-label">Select Donor <span class="text-danger">*</span></label>
+                            <select id="donor" th:field="*{donor}" class="form-select" th:classappend="${#fields.hasErrors('donor')} ? 'is-invalid' : ''" required>
+                                <option value="">-- Choose Donor --</option>
+                                <option th:each="d : ${donors}" th:value="${d.id}" th:text="${d.fullName} + ' (' + ${d.bloodGroup} + ')'"></option>
+                            </select>
+                            <div class="invalid-feedback" th:errors="*{donor}"></div>
+                            <small class="text-muted">Only active, eligible donors should be selected. Eligibility is screened post-entry.</small>
+                        </div>
+
+                        <div class="col-md-6">
+                            <label for="units" class="form-label">Volume (Units/Bags) <span class="text-danger">*</span></label>
+                            <input type="number" id="units" th:field="*{units}" min="1" max="2" class="form-control" th:classappend="${#fields.hasErrors('units')} ? 'is-invalid' : ''" required>
+                            <div class="invalid-feedback" th:errors="*{units}"></div>
+                            <small class="text-muted">Standard whole blood donation is 1 unit.</small>
+                        </div>
+                    </div>
+
+                    <div class="mt-4 pt-3 border-top d-flex gap-2">
+                        <button type="submit" class="btn btn-primary px-4 py-2">Create Pending Log</button>
+                        <a th:href="@{/donations}" class="btn btn-outline-secondary px-4 py-2">Cancel</a>
+                    </div>
+                </form>
+            </div>
+        </main>
+    </div>
+</div>
+
+<div th:replace="~{layout/base :: footer}"></div>
+</body>
+</html>
